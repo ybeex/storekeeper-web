@@ -31,6 +31,12 @@ export type DashboardAnalytics = {
   summary: { total: number; previousTotal: number; checkouts: number; activeUsers: number; accountableRate: number | null; offlineShare: number | null };
 };
 
+export type AccountOverview = {
+  organizations: { id: string; name: string; slug: string; current: boolean; members: number; unread: number; createdAt: string }[];
+  pendingInvites: { id: string; orgId: string; orgName: string; email: string; role: string | null; createdAt: string; expiresAt: string }[];
+  notifications: { id: string; orgId: string; orgName: string; type: string; title: string; body: string; read: boolean; createdAt: string }[];
+};
+
 export type Holder = { type: "person" | "team" | "job"; id: string };
 export type Condition = "good" | "damaged" | "needs_inspection" | "replaced";
 export type Role = "admin" | "store_staff" | "supervisor" | "viewer";
@@ -58,6 +64,12 @@ export const sk = {
     forgotPassword: (b: { organization: string; email: string }) => post("/auth/forgot-password", b),
     resetPassword: (b: { token: string; password: string }) => post("/auth/reset-password", b),
     acceptInvite: (b: { token: string; password: string }) => post("/auth/accept-invite", b),
+    switchOrg: (orgId: string) => post("/auth/switch-org", { orgId }),
+  },
+  account: {
+    overview: () => get<AccountOverview>("/account/overview"),
+    organizations: () => get<{ items: { id: string; name: string; slug: string; current: boolean }[] }>("/account/organizations"),
+    createOrganization: (b: { organizationName: string; firstLocationName?: string }) => post<{ id: string; name: string; slug: string }>("/account/organizations", b),
   },
   users: {
     list: (p?: Q) => get<Page | Row[]>("/users", p),
@@ -127,8 +139,8 @@ export const sk = {
   approvals: {
     list: (p?: Q) => get<Page>("/approvals", p),
     get: (id: string) => get(`/approvals/${id}`),
-    approve: (id: string, b?: Row) => post(`/approvals/${id}/approve`, b ?? {}),
-    reject: (id: string, b?: Row) => post(`/approvals/${id}/reject`, b ?? {}),
+    approve: (id: string, b?: Row) => post(`/approvals/${id}/approve`, b),
+    reject: (id: string, b?: Row) => post(`/approvals/${id}/reject`, b),
     cancel: (id: string) => post(`/approvals/${id}/cancel`),
   },
   reconciliation: {

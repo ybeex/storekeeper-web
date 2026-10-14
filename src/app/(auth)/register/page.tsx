@@ -25,7 +25,7 @@ export default function RegisterPage() {
     try {
       await sk.auth.register({ organizationName: v("organizationName"), fullName: v("fullName") || undefined, email: v("email"), password: v("password"), firstLocationName: v("firstLocationName") || undefined });
       await refresh(); // the proxy has set the session cookie
-      router.replace("/dashboard");
+      router.replace("/app"); // the organisations page: open it, or start another
     } catch (err) {
       setError(errMsg(err));
       setBusy(false);
