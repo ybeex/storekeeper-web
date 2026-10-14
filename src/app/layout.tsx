@@ -1,10 +1,10 @@
 import type { Metadata, Viewport } from "next";
-import { Big_Shoulders_Display, Public_Sans } from "next/font/google";
+import { Oswald, Public_Sans } from "next/font/google";
 import { Providers } from "@/components/providers";
 import { SwRegister } from "@/components/pwa";
 import "./globals.css";
 
-const display = Big_Shoulders_Display({ subsets: ["latin"], weight: ["700", "900"], variable: "--font-display", display: "swap" });
+const display = Oswald({ subsets: ["latin"], weight: ["700", "600"], variable: "--font-display", display: "swap" });
 const sans = Public_Sans({ subsets: ["latin"], variable: "--font-sans", display: "swap" });
 
 export const metadata: Metadata = {
