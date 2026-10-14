@@ -3,6 +3,7 @@ import { createContext, useCallback, useContext, useEffect, useState, type React
 import { useQueryClient } from "@tanstack/react-query";
 import { api, hasSessionHint, sessionFlag, type Me } from "./api";
 import { clearCache } from "./cache";
+import { readQueue } from "./offline";
 
 type Auth = {
   me: Me | null;
@@ -11,6 +12,8 @@ type Auth = {
   signOut: () => Promise<void>;
   /** Re-reads the signed-in user, for example right after the proxy set the session cookie (register, accept-invite). */
   refresh: () => Promise<void>;
+  /** Admins only: moves into another of their organisations. Refuses while this device still holds unsynced offline work. */
+  switchOrg: (orgId: string) => Promise<void>;
 };
 const Ctx = createContext<Auth | null>(null);
 
@@ -52,7 +55,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setMe(null);
   }, [qc]);
 
-  return <Ctx.Provider value={{ me, ready, signIn, signOut, refresh }}>{children}</Ctx.Provider>;
+  const switchOrg = useCallback(async (orgId: string) => {
+    // Saved-offline actions belong to the organisation they were made in; replaying them into another would misfile them.
+    const waiting = readQueue().length;
+    if (waiting > 0) throw new Error(`${waiting} ${waiting === 1 ? "action is" : "actions are"} still saved on this device and not synced yet. Let ${waiting === 1 ? "it" : "them"} sync, then switch organization.`);
+    await api("/auth/switch-org", { method: "POST", body: { orgId } }); // the proxy swaps the session cookie
+    await clearCache(); // reference data from the old organisation must not be shown in the new one
+    qc.clear();
+    await refresh();
+  }, [qc, refresh]);
+
+  return <Ctx.Provider value={{ me, ready, signIn, signOut, refresh, switchOrg }}>{children}</Ctx.Provider>;
 }
 
 export function useAuth() {

@@ -7,7 +7,6 @@ import { Search, X } from "lucide-react";
 import { rowsOf, type Row } from "@/lib/api";
 import { sk } from "@/lib/endpoints";
 import { Empty, Select, Skeleton } from "./ui";
-import { ItemCover } from "./catalog";
 
 const ALL = "all";
 const TONE: Record<string, string> = { available: "ok", checked_out: "warn", under_repair: "warn", lost: "bad", damaged: "bad", retired: "neu" };
@@ -93,7 +92,7 @@ export function ItemsTable() {
             <tbody>
               {rows.map((r) => (
                 <tr key={String(r.id)} className="clickable" onClick={() => router.push(`/items/${r.id}`)}>
-                  <td><span className="table-item"><span className="table-item-cover"><ItemCover item={r} /></span><span className="table-item-copy"><Link href={`/items/${r.id}`} className="item-link" onClick={(e) => e.stopPropagation()}>{String(r.name)}</Link><span className="mono">{String(r.assetTag ?? r.sku ?? "")}</span></span></span></td>
+                  <td><Link href={`/items/${r.id}`} className="item-link" onClick={(e) => e.stopPropagation()}>{String(r.name)}</Link><span className="mono"> {String(r.assetTag ?? r.sku ?? "")}</span></td>
                   <td><span className="badge neu">{r.type === "asset" ? "Asset" : "Consumable"}</span></td>
                   <td>{r.shelfName ? <>{String(r.shelfName)}<span className="muted"> / {String(r.categoryName ?? "")}</span></> : <span className="muted">{String(r.categoryName ?? "None")}</span>}</td>
                   <td><Availability r={r} /></td>

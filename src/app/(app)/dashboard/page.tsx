@@ -37,9 +37,9 @@ export default function Dashboard() {
       </div>
       <DashboardAnalyticsSection />
       <Reveal><ItemsTable /></Reveal>
-      <div className="two-col eq activity-layout">
+      <div className="two-col eq">
         <Reveal><section className="glass card"><h2 className="section-title">Assets by status</h2>
-          <div className="">
+          <div className="eq-scroll">
             {Object.keys(assets).length === 0 ? <p className="muted">No tracked assets yet.</p> : Object.entries(assets).map(([k, v]) => <div key={k} className="kv"><span>{k.replace(/_/g, " ")}</span><strong>{v}</strong></div>)}
             <div className="kv"><span>Consumable lines</span><strong>{d.consumableLines ?? 0}</strong></div>
             <div className="kv"><span>Out of stock</span><strong>{d.outOfStock ?? 0}</strong></div>

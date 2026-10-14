@@ -1,13 +1,14 @@
 "use client";
-import { useEffect, useState, type ComponentType, type ReactNode } from "react";
+import { useEffect, type ComponentType, type ReactNode } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { DropdownMenu } from "radix-ui";
-import { Activity, BarChart3, Bell, Boxes, CheckSquare, ClipboardCheck, FileUp, Gauge, Layers, LogOut, Package, PackageMinus, PanelLeftClose, PanelLeftOpen, Repeat, Settings, User, UserCheck, Users } from "lucide-react";
+import { Activity, BarChart3, Bell, Boxes, CheckSquare, ClipboardCheck, FileUp, Gauge, Layers, LogOut, Package, PackageMinus, Repeat, Settings, User, UserCheck, Users } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { sk } from "@/lib/endpoints";
 import { can, homeFor, type Cap } from "@/lib/roles";
+import { OrgSwitcher } from "@/components/org-switcher";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { SyncBar } from "@/components/sync-bar";
 import { ScanButton, ScanHost } from "@/components/scan";
@@ -27,7 +28,6 @@ export default function AppShell({ children }: { children: ReactNode }) {
   const { me, ready, signOut } = useAuth();
   const router = useRouter();
   const path = usePathname();
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   useEffect(() => { if (ready && !me) router.replace("/login"); }, [ready, me, router]);
   // Store staff have no dashboard or analytics: anything that lands them there sends them to their own work instead.
   useEffect(() => { if (me && path.startsWith("/dashboard") && !can(me.role, "dashboard")) router.replace(homeFor(me.role)); }, [me, path, router]);
@@ -45,15 +45,15 @@ export default function AppShell({ children }: { children: ReactNode }) {
   const count = unread.data?.unread ?? 0;
 
   return (
-    <div className={`shell${sidebarCollapsed ? " sidebar-collapsed" : ""}`}>
+    <div className="shell">
       <aside className="side glass">
-        <div className="side-head"><Link href={homeFor(me.role)} className="brand" aria-label="StoreKeeper"><span className="brand-mark"><Package size={18} /></span><span className="side-brand-name">StoreKeeper</span></Link><button type="button" className="btn icon side-toggle" aria-label={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"} aria-expanded={!sidebarCollapsed} title={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"} onClick={() => setSidebarCollapsed((value) => !value)}>{sidebarCollapsed ? <PanelLeftOpen size={18} /> : <PanelLeftClose size={18} />}</button></div>
+        <Link href={homeFor(me.role)} className="brand"><span className="brand-mark"><Package size={18} /></span>StoreKeeper</Link>
         <nav aria-label="Primary">
           {NAV.map(([group, all]) => { const links = all.filter((l) => !l[3] || can(me.role, l[3])); return links.length === 0 ? null : (
             <div key={group} className="nav-group">
               <span className="nav-label">{group}</span>
               {links.map(([href, label, Icon]) => (
-                <Link key={href} href={href} className="nav-link" aria-current={path.startsWith(href) ? "page" : undefined} title={sidebarCollapsed ? label : undefined}><Icon size={17} /><span className="nav-text">{href === "/activity" && me.role === "store_staff" ? "My activity" : label}</span></Link>
+                <Link key={href} href={href} className="nav-link" aria-current={path.startsWith(href) ? "page" : undefined}><Icon size={17} />{href === "/activity" && me.role === "store_staff" ? "My activity" : label}</Link>
               ))}
             </div>
           ); })}
@@ -61,9 +61,9 @@ export default function AppShell({ children }: { children: ReactNode }) {
         <p className="org-tag muted">{me.orgName ?? "Your store"}</p>
       </aside>
       <div className="main-col">
-        <header className="appbar glass app-nav">
+        <header className="appbar">
           <div className="appbar-in">
-          <span className="org-name" title={me.orgName}>{me.orgName}</span>
+          {can(me.role, "orgs") ? <OrgSwitcher name={me.orgName ?? "Your store"} /> : <span className="org-name" title={me.orgName}>{me.orgName}</span>}
           <div className="topbar-end">
             <InstallButton />
             <span className="hide-sm"><ScanButton /></span>
