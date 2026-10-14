@@ -30,11 +30,17 @@ export default function ItemPage() {
   const [note, setNote] = useState("");
   const done = (m: string) => { toast(m); setDlg(null); setVal(""); setNote(""); void qc.invalidateQueries({ queryKey: ["item", id] }); };
   const act = useMutation({
-    mutationFn: () => dlg === "condition" ? sk.transactions.condition(id, { condition: val as Condition, note: note || undefined }) : sk.transactions.status(id, { to: val as "available", note: note || undefined }),
+    mutationFn: async () => {
+      if (dlg === "condition") await sk.transactions.condition(id, { condition: val as Condition, note: note || undefined });
+      else await sk.transactions.status(id, { to: val as "available", note: note || undefined });
+    },
     onSuccess: () => done("Updated"), onError: (e) => toast(errMsg(e), "bad"),
   });
   const archive = useMutation({
-    mutationFn: () => (item.data?.archivedAt ? sk.items.restore(id) : sk.items.archive(id)),
+    mutationFn: async () => {
+      if (item.data?.archivedAt) await sk.items.restore(id);
+      else await sk.items.archive(id);
+    },
     onSuccess: () => done(item.data?.archivedAt ? "Item restored" : "Item archived"), onError: (e) => toast(errMsg(e), "bad"),
   });
   if (item.isPending) return <Skeleton rows={6} />;
